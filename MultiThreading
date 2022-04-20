@@ -1,14 +1,46 @@
 #include <Arduino.h>
 #include "esp_system.h"
+#include <string>
+#include <iostream>
 
-SemaphoreHandle_t SemaphoreCook=xSemaphoreCreateBinary();
+using std::string;
+
+class WaffleIronSemaphore {
+	public:
+	SemaphoreHandle_t SausageMcmuffinSemaphore;
+	WaffleIronSemaphore();
+	void CreateSemaphore();
+	void TakeSemaphore();
+	string PoachedEggs;
+	private:
+};
+
+SemaphoreHandle_t SemaphoreCook;
+WaffleIronSemaphore TheBaconator;
 bool debug_my_breakfast=true;
 
 void WaffleMakingTask(void *pvParameter) { //void *pvParameter required per reference manual page 38
+	std::cout<<"Adress of null Pointer is " << pvParameter <<std::endl;
+	/*if (pvParameter == nullptr) {
+		Serial.println("Not Good");
+	} */
+	//WaffleIronSemaphore* WafISem= static_cast<WaffleIronSemaphore*>(pvParameter);
+	//WaffleIronSemaphore& WaffleSme= *WafISem;
+	Serial.println("New Eggs Are");
+	Serial.println(TheBaconator.PoachedEggs.c_str());
+	//Serial.println(*WafISem.PoachedEggs.c_str());
+	//Serial.println(*WafISem->PoachedEggs.c_str());
+	//*WafISem=pvParameter;
+	//WaffleIronSemaphore& WafIronSem = 
 	for (;true;) {
-		if(xSemaphoreTake(SemaphoreCook, 1000) == pdPASS) {
-			Serial.println("We Made Waffles!");
+		//TheBaconator.
+		if(xSemaphoreTake(TheBaconator.SausageMcmuffinSemaphore, 1000) == pdTRUE) {
+			Serial.println("Semaphore Take Sucesfull");
 			vTaskDelay(10); //Delay the task
+			xSemaphoreGive(TheBaconator.SausageMcmuffinSemaphore);
+			}
+			else {
+				Serial.println("SemaphoreTakeFailed");
 			}
 		}
 }
@@ -19,7 +51,9 @@ void BaconCookingTask(void *pvParameter) { //void *pvParameter required per refe
 	}
 }
 
-void ExecuteCookingTasks() {
+void ExecuteCookingTasks () {
+	//std::cout<<"Waffle Semaphore Address is " << &BigBoiBaacon <<std::endl;
+	//Serial.println(BigBoiBaacon.PoachedEggs.c_str());
 	xTaskCreate( //Create higher priority task for WaffleMakingTask
 	&WaffleMakingTask, //pointer to the task
 	"hello_task", //Descriptive name for the task
@@ -36,15 +70,6 @@ void ExecuteCookingTasks() {
 	//5, //Task priority, ranges from 0 (lowest) to (configMAX_PRIORITIES-1) (highest)
 	//NULL); //pass out a handle to the task being created
 }
-
-class WaffleIronSemaphore {
-	public:
-	WaffleIronSemaphore();
-	void CreateSemaphore();
-	void TakeSemaphore();
-	private:
-	SemaphoreHandle_t SausageMcmuffinSemaphore;
-};
 void WaffleIronSemaphore::CreateSemaphore() {
 	if(debug_my_breakfast) Serial.println("Semaphore Creation Begin");
 	SausageMcmuffinSemaphore=xSemaphoreCreateBinary();
@@ -53,7 +78,12 @@ void WaffleIronSemaphore::CreateSemaphore() {
 	}
 	else {
 		if(debug_my_breakfast) Serial.println("Semaphore Creation Sucesfull");
+		SemaphoreCook = SausageMcmuffinSemaphore;
 	}
+	if( xSemaphoreTake( SausageMcmuffinSemaphore, 0 ) == pdTRUE ) { //check if semaphore can be taken {
+		Serial.println("Semaphore Take Success"); 
+		}
+		xSemaphoreGive(TheBaconator.SausageMcmuffinSemaphore);
 }
 WaffleIronSemaphore::WaffleIronSemaphore() {
 	SausageMcmuffinSemaphore=NULL;
@@ -65,8 +95,16 @@ void WaffleIronSemaphore::TakeSemaphore() {
 void setup() {
 	// put your setup code here, to run once:
 	Serial.begin(9600);
-	WaffleIronSemaphore TheBaconator;
 	TheBaconator.CreateSemaphore();
+	TheBaconator.PoachedEggs = "I Like Eggs";
+	Serial.println(TheBaconator.PoachedEggs.c_str());
+	//Pass objects
+	//string eggss = "I Like Eggs";
+	//char* eggss_test = eggss.cstr
+	//Serial.println(TheBaconator.PoachedEggs.c_str());
+	//Serial.println(eggss.c_str());
+	//TheBaconator.PoachedEggs = "Poached Eggs Time";
+	//std::cout <<"Address of TheBaconator is " << &TheBaconator << std::endl;
 	ExecuteCookingTasks();
 }
 
